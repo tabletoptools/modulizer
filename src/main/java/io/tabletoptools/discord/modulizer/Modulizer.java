@@ -100,6 +100,12 @@ public class Modulizer {
         return this.loadModule(module, true);
     }
 
+    public void stop() {
+        this.modules.forEach(Module::disable);
+        this.modules.forEach(Module::unload);
+        this.modules.clear();
+    }
+
     public void process(MessageReceivedEvent event) {
         try {
             if (isCommand(event.getMessage().getContentRaw())) {
