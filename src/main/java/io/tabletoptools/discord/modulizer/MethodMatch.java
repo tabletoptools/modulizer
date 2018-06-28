@@ -14,19 +14,22 @@
  */
 package io.tabletoptools.discord.modulizer;
 
+import org.apache.commons.cli.CommandLine;
+
 import java.lang.reflect.Method;
-import java.util.List;
 
 public class MethodMatch {
 
     private Method method;
     private Integer depth;
     private Module module;
+    private CommandLine commandLine;
 
-    public MethodMatch(Module module, Method method, Integer depth) {
+    public MethodMatch(Module module, Method method, Integer depth, CommandLine commandLine) {
         this.module = module;
         this.method = method;
         this.depth = depth;
+        this.commandLine = commandLine;
     }
 
     public Method getMethod() {
@@ -41,4 +44,7 @@ public class MethodMatch {
         return depth;
     }
 
+    public CommandLine getCommandLine() {
+        return commandLine;
+    }
 }

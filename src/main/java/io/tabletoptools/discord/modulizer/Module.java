@@ -2,19 +2,16 @@ package io.tabletoptools.discord.modulizer;
 
 import io.tabletoptools.discord.modulizer.annotation.Command;
 
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public abstract class Module {
 
     private Collection<Module> submodules = new ArrayList<>();
     private Collection<Class> commandClasses = new ArrayList<>();
     private boolean enabled = false;
-
-    public Module() {
-
-    }
 
     public void load() {
         onLoad();

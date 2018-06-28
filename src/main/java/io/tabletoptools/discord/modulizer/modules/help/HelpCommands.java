@@ -16,7 +16,6 @@ package io.tabletoptools.discord.modulizer.modules.help;
 
 import io.tabletoptools.discord.modulizer.CommandClass;
 import io.tabletoptools.discord.modulizer.annotation.Command;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
 public class HelpCommands extends CommandClass {
 

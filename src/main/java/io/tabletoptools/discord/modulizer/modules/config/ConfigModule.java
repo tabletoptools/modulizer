@@ -29,16 +29,16 @@ public class ConfigModule extends Module {
 
     @Override
     public void onUnload() {
-
+        //This module should never be unloaded.
     }
 
     @Override
     public void onEnable() {
-
+        //TODO: Enabling this module
     }
 
     @Override
     public void onDisable() {
-
+        //This module should never be disabled.
     }
 }

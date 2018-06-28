@@ -15,14 +15,17 @@ public class HelpModule extends Module {
 
     @Override
     public void onUnload() {
+        //This Module should never be unloaded.
     }
 
     @Override
     public void onEnable() {
+        //TODO: Enable Help Module
     }
 
     @Override
     public void onDisable() {
+        //This Module should never be disabled
     }
 
 

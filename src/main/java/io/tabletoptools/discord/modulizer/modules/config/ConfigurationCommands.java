@@ -19,19 +19,19 @@ import io.tabletoptools.discord.modulizer.CommandClass;
 public class ConfigurationCommands extends CommandClass {
 
     public void add(String scope, String value) {
-
+        //TODO: Configuration Add with Scope
     }
 
     public void add(String value) {
-
+        //TODO: Configuration Add
     }
 
     public void list() {
-
+        //TODO: List Configurations
     }
 
     public void remove() {
-
+        //TODO: Remove Configuration
     }
 
 }

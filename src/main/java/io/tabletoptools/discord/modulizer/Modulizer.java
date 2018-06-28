@@ -1,20 +1,21 @@
 package io.tabletoptools.discord.modulizer;
 
 import io.tabletoptools.discord.modulizer.annotation.Command;
-import io.tabletoptools.discord.modulizer.annotation.Flag;
+import io.tabletoptools.discord.modulizer.annotation.Option;
+import io.tabletoptools.discord.modulizer.annotation.Parameter;
+import io.tabletoptools.discord.modulizer.annotation.Required;
 import io.tabletoptools.discord.modulizer.modules.config.ConfigModule;
-import io.tabletoptools.discord.modulizer.modules.config.impl.InMemoryConfigurationAccessorFactory;
 import io.tabletoptools.discord.modulizer.modules.help.HelpModule;
 import io.tabletoptools.discord.modulizer.modules.modulizer.ModulizerModule;
-import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Modulizer {
 
@@ -183,84 +184,48 @@ public class Modulizer {
 
     }
     
-    List<String> getCommands(String message) {
+    public List<String> getCommands(String message) {
 
-        List<String> commands = new ArrayList<>();
-
+        //TODO: Check prefix length
         message = message.trim().substring(1);
 
-        boolean inQuotation = false;
-        Character quotation = null;
+        return new ArrayList<>(Arrays.asList(message.split(" ")[0].split(".")));
 
-        StringBuilder builder = new StringBuilder();
-
-        for (Character character : message.toCharArray()) {
-
-
-            //TODO: Escaped Characters
-            if((character.equals('"') || character.equals('\'')) && (!inQuotation || quotation == character)) {
-                inQuotation = !inQuotation;
-                if(inQuotation) {
-                    //Quotation opened
-                    quotation = character;
-                }
-                else {
-                    //No longer in quotation, dump string
-                    commands.add(builder.toString());
-                    builder = new StringBuilder();
-                    quotation = null;
-                }
-
-            }
-            else if (character.equals(' ') && !inQuotation && builder.length() != 0) {
-                commands.add(builder.toString());
-                builder = new StringBuilder();
-            }
-            else {
-                builder.append(character);
-            }
-        }
-        if(builder.length() != 0) commands.add(builder.toString());
-        return commands;
     }
 
-    private boolean compareMethodSignature(MethodMatch methodMatch, List<String> commands) {
+    private boolean methodMatch(Method method, List<String> arguments) {
+        //Is method a command?
+        assert isCommand(method) : false;
+        Options options = new Options();
+        Arrays
+                .stream(method.getParameters())
+                .forEach(parameter -> {
+                    Parameter paramNames = parameter.getAnnotation(Parameter.class);
+                    org.apache.commons.cli.Option option = org.apache.commons.cli.Option.builder()
+                            .required(parameter.isAnnotationPresent(Required.class))
+                            .argName(paramNames.value())
+                            .longOpt("".equals(paramNames.longName()) ? paramNames.longName() : null)
+                            .build();
+                    options.addOption(option);
 
-        List<Parameter> booleanFlagParams = Arrays.stream(methodMatch.getMethod().getParameters())
-                .filter(parameter -> parameter.isAnnotationPresent(Flag.class))
-                .filter(parameter -> parameter.getType().equals(Boolean.class))
-                .collect(Collectors.toList());
-
-        List<Parameter> stringFlagParams = Arrays.stream(methodMatch.getMethod().getParameters())
-                .filter(parameter -> parameter.isAnnotationPresent(Flag.class))
-                .filter(parameter -> parameter.getType().equals(String.class))
-                .collect(Collectors.toList());
-
-        List<Parameter> positionalParams = Arrays.stream(methodMatch.getMethod().getParameters())
-                .filter(parameter -> !parameter.isAnnotationPresent(Flag.class))
-                .collect(Collectors.toList());
-
-        List<String> rawArguments = methodMatch.getDepth() + 1 < commands.size() ? commands.subList(methodMatch.getDepth() + 1, commands.size() - 1) : new ArrayList<>();
-
-        booleanFlagParams.forEach(parameter -> {
-            Boolean found = false;
-            for (int i = 0; i < rawArguments.size(); i++) {
-                String argument = rawArguments.get(i);
-                if (parameter.getAnnotation(Flag.class).value().equals(argument)) {
-                    found = true;
-                }
-            }
-
-        });
-
-        //TODO: Go through raw arguments, group together and split into positional and non-positional. non-positional arguments might either be regular or flags.
-
-        return true;
+                });
+        CommandLineParser commandLineParser = new DefaultParser();
+        try {
+            commandLineParser.parse(options, arguments.toArray(new String[0]), true);
+            return true;
+        }
+        catch (ParseException ex) {
+            return false;
+        }
     }
 
     private boolean isCommand(String message) {
         //TODO: Check for Prefix according to server settings
         return message.startsWith("/");
+    }
+
+    private boolean isCommand(Method method) {
+        return method.isAnnotationPresent(Command.class);
     }
 
     private String getCommand(List<String> commands, Integer depth) {
